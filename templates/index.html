@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IBVAP-Lite &bull; Border Surveillance Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --bg: #08090A;
+    --surface-1: #0D1014;
+    --surface-2: #111419;
+    --surface-3: #15181D;
+    --border: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(255, 255, 255, 0.12);
+    --border-focus: #4285F4;
+    --text-main: #DDE3EA;
+    --text-muted: #697586;
+    --blue-accent: #4285F4;
+    --blue-muted: #315F9E;
+    --status-red: #EF4444;
+    --status-amber: #F59E0B;
+    --status-green: #10B981;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--surface-1); }
+  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.16); }
+
+  /* Surfaces & Panels */
+  .panel {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .panel-sub {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  /* Header */
+  #header {
+    height: 48px;
+    background: var(--surface-1);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    flex-shrink: 0;
+  }
+
+  /* Form inputs */
+  select, input[type="text"] {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 150ms ease;
+  }
+  select:hover, input[type="text"]:hover {
+    border-color: var(--border-hover);
+  }
+  select:focus, input[type="text"]:focus {
+    border-color: var(--blue-accent);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 150ms ease;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--blue-accent);
+    color: #FFFFFF;
+  }
+  .btn-primary:hover {
+    background: #3367D6;
+  }
+  .btn-secondary {
+    background: var(--surface-2);
+    border-color: var(--border);
+    color: var(--text-main);
+  }
+  .btn-secondary:hover {
+    background: var(--surface-3);
+    border-color: var(--border-hover);
+  }
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.25);
+    color: var(--status-red);
+  }
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+  }
+
+  /* Status Pills */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .pill-green {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--status-green);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+  .pill-amber {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--status-amber);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+  .pill-red {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--status-red);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+  .pill-muted {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  /* Sliders */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--surface-3);
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--blue-accent);
+    cursor: pointer;
+    transition: transform 150ms ease;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+  }
+
+  /* Toggle Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    transition: 150ms;
+    border-radius: 18px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 2px;
+    bottom: 2px;
+    background: var(--text-muted);
+    transition: 150ms;
+    border-radius: 50%;
+  }
+  input:checked + .slider {
+    background: var(--blue-muted);
+    border-color: var(--blue-accent);
+  }
+  input:checked + .slider:before {
+    transform: translateX(14px);
+    background: #FFFFFF;
+  }
+
+  /* Tabs */
+  .tab-btn {
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 150ms ease;
+  }
+  .tab-btn:hover {
+    color: var(--text-main);
+  }
+  .tab-btn.active {
+    color: var(--blue-accent);
+    border-bottom-color: var(--blue-accent);
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<!-- TOP NAVIGATION BAR                                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<header id="header">
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2 font-medium">
+      <span class="text-sm font-semibold tracking-tight text-white">IBVAP</span>
+      <span class="text-xs text-[#697586]">Surveillance Platform</span>
+    </div>
+    <div class="h-4 w-[1px] bg-white/10 mx-1"></div>
+    <div id="sys-status" class="pill pill-green">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+      <span class="mono">SYSTEM READY</span>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-1 text-xs text-[#697586]">
+      <span>ZONE:</span>
+      <input type="text" id="zone-input" value="Sector 04 — Gate 1" class="mono text-xs text-[#DDE3EA] py-0.5 px-2 bg-[#111419] border border-white/5 rounded" onchange="saveZone()"/>
+    </div>
+    <div class="h-4 w-[1px] bg-white/10"></div>
+    <div id="clock" class="mono text-xs text-[#697586]">00:00:00</div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<!-- MAIN WORKSPACE LAYOUT (FEED + DOCKED TELEMETRY & SIDEBAR)                     -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<main class="flex-1 flex overflow-hidden p-4 gap-4">
+
+  <!-- LEFT: Surveillance Viewport & Feed Controls -->
+  <section class="flex-1 flex flex-col gap-3 min-w-0">
+    
+    <!-- Viewport Surface -->
+    <div id="viewport-container" class="flex-1 panel relative overflow-hidden bg-black flex items-center justify-center min-h-0 w-full h-full">
+      
+      <!-- Video Feed Image (Default object-cover to fill all allocated space) -->
+      <img id="feed" alt="Surveillance Feed" class="w-full h-full object-cover transition-all duration-150" style="display:none;"/>
+      
+      <!-- Idle State Placeholder -->
+      <div id="offline-msg" class="flex flex-col items-center justify-center gap-2 text-[#697586]">
+        <svg class="w-10 h-10 text-white/10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+        </svg>
+        <span class="text-xs font-mono">STANDBY &bull; NO ACTIVE INGESTION</span>
+        <span class="text-[11px] text-[#697586]/70">Select input stream and start monitoring</span>
+      </div>
+
+      <!-- Threat Alert Notification Banner -->
+      <div id="threat-banner" class="absolute top-0 inset-x-0 bg-[#EF4444] text-white text-xs font-medium py-1.5 px-4 text-center hidden items-center justify-center gap-2 z-20">
+        <span class="font-semibold" id="threat-banner-text">WATCHLIST TARGET IDENTIFIED</span>
+      </div>
+
+      <!-- Feed Status Pill (Top Left Overlay) -->
+      <div class="absolute top-3 left-3 flex items-center gap-2 pointer-events-none z-10">
+        <div class="pill pill-muted mono text-[11px] bg-black/60 backdrop-blur-sm border-white/10" id="stream-indicator">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#697586]" id="stream-dot"></span>
+          <span id="stream-status-text">OFFLINE</span>
+        </div>
+      </div>
+
+      <!-- Tactical Viewport Overlay Controls (Top Right Overlay) -->
+      <div class="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+        <button id="fit-btn" onclick="toggleFitMode()" class="px-2 py-1 rounded bg-black/70 hover:bg-black/90 backdrop-blur-sm border border-white/15 text-[11px] font-mono text-[#DDE3EA] flex items-center gap-1 transition shadow-lg cursor-pointer" title="Toggle between Fill Screen and Fit Aspect">
+          <span id="fit-icon">🔲</span>
+          <span id="fit-text">FILL</span>
+        </button>
+        <button id="theater-btn" onclick="toggleTheaterMode()" class="px-2 py-1 rounded bg-black/70 hover:bg-black/90 backdrop-blur-sm border border-white/15 text-[11px] font-mono text-[#DDE3EA] flex items-center gap-1 transition shadow-lg cursor-pointer" title="Toggle Theater Widescreen Mode (Collapse Sidebar)">
+          <span>↔</span>
+          <span id="theater-text">WIDE</span>
+        </button>
+        <button onclick="toggleFullscreen()" class="px-2 py-1 rounded bg-black/70 hover:bg-black/90 backdrop-blur-sm border border-white/15 text-[11px] font-mono text-[#DDE3EA] flex items-center gap-1 transition shadow-lg cursor-pointer" title="Enter Fullscreen Mode">
+          <span>⛶</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Feed Controls Surface -->
+    <div class="panel p-3 flex flex-col gap-2.5 flex-shrink-0">
+      <!-- Row 1: Source & Actions -->
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-2 flex-1 min-w-[320px]">
+          <span class="text-xs text-[#697586] font-medium">SOURCE:</span>
+          <select id="source-select" onchange="onSourceChange()" class="text-xs">
+            <option value="ip" selected>Phone IP Camera</option>
+            <option value="file:test_border_cctv.mp4">Demo CCTV Video</option>
+            <option value="webcam:0">Webcam 0</option>
+            <option value="webcam:1">Webcam 1</option>
+          </select>
+          <input type="text" id="ip-url" value="http://172.18.63.132:8080/video" placeholder="http://172.18.63.132:8080/video" class="flex-1 font-mono text-xs"/>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button class="btn btn-primary" id="start-btn" onclick="startFeed()">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <span>Start Feed</span>
+          </button>
+          <button class="btn btn-danger hidden" id="stop-btn" onclick="stopFeed()">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+            <span>Stop Feed</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Row 2: Precision Sliders -->
+      <div class="flex items-center gap-6 pt-1 border-t border-white/[0.04] text-xs text-[#697586]">
+        <div class="flex items-center gap-2">
+          <span>Match Threshold:</span>
+          <input type="range" id="threshold" min="0.20" max="0.80" step="0.02" value="0.40" class="w-20" oninput="onParamChange()"/>
+          <span class="mono text-[#DDE3EA] w-8" id="threshold-val">0.40</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span>Face Interval:</span>
+          <input type="range" id="skip" min="1" max="10" step="1" value="3" class="w-16" oninput="onParamChange()"/>
+          <span class="mono text-[#DDE3EA] w-14" id="skip-val">3 f</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span>YOLOv8 Conf:</span>
+          <input type="range" id="yoloconf" min="0.15" max="0.90" step="0.05" value="0.35" class="w-16" oninput="onParamChange()"/>
+          <span class="mono text-[#DDE3EA] w-8" id="yoloconf-val">0.35</span>
+        </div>
+
+        <div class="flex items-center gap-2 ml-auto">
+          <span>Low-Light (CLAHE):</span>
+          <label class="switch">
+            <input type="checkbox" id="night-toggle" onchange="onParamChange()"/>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: Intelligence Sidebar (Alerts, Watchlist, Analytics) -->
+  <aside id="intel-sidebar" class="w-[380px] panel flex flex-col overflow-hidden flex-shrink-0 transition-all duration-200">
+    
+    <!-- Tab Navigation -->
+    <div class="flex items-center border-b border-white/[0.06] px-2 flex-shrink-0">
+      <button class="tab-btn active" id="tab-btn-alerts" onclick="switchTab('alerts')">
+        Alerts <span id="alert-count-pill" class="pill pill-muted mono text-[10px] ml-1 hidden">0</span>
+      </button>
+      <button class="tab-btn" id="tab-btn-watchlist" onclick="switchTab('watchlist')">Watchlist</button>
+      <button class="tab-btn" id="tab-btn-analytics" onclick="switchTab('analytics')">Telemetry</button>
+    </div>
+
+    <!-- TAB 1: ALERTS LOG -->
+    <div id="tab-alerts" class="flex-1 flex flex-col min-h-0 p-3 gap-2 overflow-hidden">
+      <div class="flex items-center justify-between pb-1 text-xs text-[#697586]">
+        <span>REAL-TIME EVENTS</span>
+        <div class="flex items-center gap-2">
+          <a href="/api/alerts/export" target="_blank" class="text-xs text-[#4285F4] hover:underline">Export CSV</a>
+          <span>&bull;</span>
+          <button onclick="clearAlerts()" class="text-xs text-[#697586] hover:text-[#DDE3EA]">Clear</button>
+        </div>
+      </div>
+
+      <div id="alert-list" class="flex-1 overflow-y-auto flex flex-col gap-2 pr-1">
+        <div class="flex flex-col items-center justify-center h-48 text-[#697586] text-xs font-mono">
+          <span>NO THREAT EVENTS DETECTED</span>
+          <span class="text-[11px] text-[#697586]/60 mt-1">Monitoring active feed...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: WATCHLIST MANAGEMENT -->
+    <div id="tab-watchlist" class="flex-1 flex flex-col min-h-0 p-3 gap-3 overflow-hidden hidden">
+      <div class="flex items-center justify-between text-xs text-[#697586]">
+        <span>ENROLLED TARGETS</span>
+        <button class="btn btn-secondary text-xs py-1" onclick="toggleEnroll()">+ Add Person</button>
+      </div>
+
+      <!-- Add Person Form (Expandable) -->
+      <div id="enroll-form" class="panel-sub p-3 flex flex-col gap-2.5 hidden">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-white">Enroll Target Identity</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-[#4285F4] font-medium border border-blue-500/30">360° Multi-Angle</span>
+        </div>
+        <div class="flex gap-2">
+          <input type="text" id="enroll-name" placeholder="Full Name" class="flex-1 text-xs"/>
+          <select id="enroll-cat" class="text-xs">
+            <option value="Friend / VIP">Friend / VIP</option>
+            <option value="Authorized Personnel">Authorized Personnel</option>
+            <option value="Suspect / Threat">Suspect / Threat</option>
+            <option value="Unknown">Unknown</option>
+          </select>
+        </div>
+        <input type="text" id="enroll-notes" placeholder="Notes / Badge number" class="text-xs"/>
+
+        <!-- Multi-Angle Guidance Callout -->
+        <div class="text-[11px] text-[#8C9BAE] bg-white/[0.03] border border-white/5 rounded p-2 flex items-start gap-2">
+          <span class="text-base leading-none mt-0.5">📸</span>
+          <div class="flex-1">
+            <span class="text-white font-medium">Multi-Angle Recognition:</span>
+            <span class="text-[#8C9BAE] block text-[10px] mt-0.5 leading-snug">Upload photos from different viewpoints (Frontal, Left 45°, Right 45°, Profile, Tilted) so the AI recognizes this person from any angle.</span>
+          </div>
+        </div>
+
+        <div id="drop-zone" onclick="document.getElementById('photo-input').click()" ondragover="onDragOver(event)" ondrop="onDrop(event)" class="border border-dashed border-blue-500/30 hover:border-blue-500/60 bg-blue-500/[0.03] hover:bg-blue-500/[0.07] p-3 text-center rounded-lg cursor-pointer transition flex flex-col items-center justify-center gap-1">
+          <span class="text-xs font-medium text-[#4285F4] flex items-center gap-1.5">
+            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            Choose Reference Photos (Multiple Angles)
+          </span>
+          <span class="text-[10px] text-[#697586]">Click to browse or drag photos here (hold Ctrl to select multiple)</span>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" multiple class="hidden" onchange="onPhotoSelect(event)"/>
+
+        <!-- Queued Photo Previews -->
+        <div class="flex items-center justify-between">
+          <span id="photo-count-badge" class="text-[10px] text-emerald-400 font-mono hidden">0 photos selected</span>
+          <button type="button" class="text-[11px] text-[#4285F4] hover:underline" onclick="document.getElementById('photo-input').click()">+ Add Another Photo</button>
+        </div>
+        <div id="photo-previews" class="flex flex-wrap gap-1.5 min-h-[44px] p-1.5 rounded bg-black/20 border border-white/5 items-center">
+          <span class="text-[10px] text-[#697586] italic px-1" id="no-photo-text">No photos selected yet</span>
+        </div>
+        <div id="enroll-error" class="text-xs text-red-400 hidden"></div>
+
+        <div class="flex gap-2 mt-1">
+          <button class="btn btn-primary flex-1 text-xs py-1.5" onclick="submitEnroll()" id="enroll-submit-btn">Save Identity (Multi-Angle)</button>
+          <button class="btn btn-secondary text-xs py-1.5" onclick="toggleEnroll()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Watchlist Cards Grid -->
+      <div id="watchlist-grid" class="flex-1 overflow-y-auto grid grid-cols-2 gap-2 pr-1 content-start"></div>
+    </div>
+
+    <!-- TAB 3: TELEMETRY & SYSTEM ANALYTICS -->
+    <div id="tab-analytics" class="flex-1 flex flex-col min-h-0 p-3 gap-3 overflow-y-auto hidden">
+      <span class="text-xs text-[#697586] uppercase font-mono">SYSTEM METRICS</span>
+      
+      <div class="grid grid-cols-2 gap-2">
+        <div class="panel-sub p-3">
+          <div class="text-[11px] text-[#697586]">STREAM DISPLAY</div>
+          <div class="text-xl font-semibold mono text-[#DDE3EA] mt-0.5" id="stat-fps">0.0</div>
+          <div class="text-[10px] text-[#697586] mono mt-1">STREAM FPS</div>
+        </div>
+
+        <div class="panel-sub p-3">
+          <div class="text-[11px] text-[#697586]">AI INFERENCE</div>
+          <div class="text-xl font-semibold mono text-[#4285F4] mt-0.5" id="stat-aifps">0.0</div>
+          <div class="text-[10px] text-[#697586] mono mt-1">NEURAL FPS</div>
+        </div>
+
+        <div class="panel-sub p-3">
+          <div class="text-[11px] text-[#697586]">PERSONS DETECTED</div>
+          <div class="text-xl font-semibold mono text-[#DDE3EA] mt-0.5" id="stat-persons">0</div>
+          <div class="text-[10px] text-[#697586] mono mt-1">YOLOv8 CENTROIDS</div>
+        </div>
+
+        <div class="panel-sub p-3">
+          <div class="text-[11px] text-[#697586]">VEHICLES DETECTED</div>
+          <div class="text-xl font-semibold mono text-[#DDE3EA] mt-0.5" id="stat-vehicles">0</div>
+          <div class="text-[10px] text-[#697586] mono mt-1">SPATIAL TRACKS</div>
+        </div>
+
+        <div class="panel-sub p-3">
+          <div class="text-[11px] text-[#697586]">TOTAL MATCHES</div>
+          <div class="text-xl font-semibold mono text-[#DDE3EA] mt-0.5" id="stat-alerts">0</div>
+          <div class="text-[10px] text-[#697586] mono mt-1">AUDIT LOG ENTRIES</div>
+        </div>
+      </div>
+
+      <div class="panel-sub p-3 mt-1 flex flex-col gap-2">
+        <span class="text-xs text-[#697586] font-mono uppercase">AI ENGINE SUBSYSTEMS</span>
+        <div class="text-xs flex justify-between">
+          <span class="text-[#697586]">Face & Liveness:</span>
+          <span class="mono text-[#DDE3EA]">ArcFace + Anti-Spoof Dynamic</span>
+        </div>
+        <div class="text-xs flex justify-between">
+          <span class="text-[#697586]">Storage Security:</span>
+          <span class="mono text-[#DDE3EA]">ACID SQLite (Zero-Pickle)</span>
+        </div>
+        <div class="text-xs flex justify-between">
+          <span class="text-[#697586]">Object Detector:</span>
+          <span class="mono text-[#DDE3EA]">YOLOv8n (ONNX Runtime)</span>
+        </div>
+        <div class="text-xs flex justify-between">
+          <span class="text-[#697586]">Video Pipeline:</span>
+          <span class="mono text-[#DDE3EA]">Native MJPEG / WebSocket</span>
+        </div>
+        <div class="text-xs flex justify-between">
+          <span class="text-[#697586]">Watchlist DB:</span>
+          <span class="mono text-[#DDE3EA]" id="stat-enrolled">0 Identities</span>
+        </div>
+      </div>
+
+      <!-- Telegram Push Notification Card -->
+      <div class="panel-sub p-3 flex flex-col gap-2">
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-[#697586] font-mono uppercase">TELEGRAM THREAT DISPATCH</span>
+          <span id="tg-status-pill" class="pill pill-muted text-[10px]">UNCONFIGURED</span>
+        </div>
+        <div class="flex flex-col gap-1.5 mt-1">
+          <input type="text" id="tg-token" placeholder="Bot API Token (from @BotFather)" class="text-xs font-mono"/>
+          <input type="text" id="tg-chatid" placeholder="Chat ID (from @userinfobot)" class="text-xs font-mono"/>
+          <div class="flex gap-2 mt-1">
+            <button class="btn btn-primary flex-1 text-xs py-1.5" onclick="saveTelegramConfig()" id="tg-link-btn">Save & Link</button>
+            <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="triggerTelegramTest(false)" id="tg-test-btn" title="Send immediate test ping">Test Ping 🚀</button>
+          </div>
+          <div id="tg-sidebar-msg" class="text-[10px] text-[#697586] font-mono mt-0.5 hidden"></div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<!-- EDIT PERSON MODAL                                                             -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<div id="edit-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+  <div class="panel p-5 w-full max-w-sm flex flex-col gap-3 bg-[#0D1014] border border-white/10 shadow-2xl">
+    <div class="flex justify-between items-center">
+      <span class="text-xs font-semibold text-white">Edit Enrolled Target</span>
+      <button onclick="closeEditModal()" class="text-[#697586] hover:text-[#DDE3EA] text-sm">✕</button>
+    </div>
+    <input type="hidden" id="edit-person-id"/>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] text-[#697586]">Full Name</label>
+      <input type="text" id="edit-name" class="text-xs"/>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] text-[#697586]">Category</label>
+      <select id="edit-cat" class="text-xs">
+        <option value="Friend / VIP">Friend / VIP</option>
+        <option value="Authorized Personnel">Authorized Personnel</option>
+        <option value="Suspect / Threat">Suspect / Threat</option>
+        <option value="Unknown">Unknown</option>
+      </select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] text-[#697586]">Notes</label>
+      <input type="text" id="edit-notes" class="text-xs"/>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] text-[#697586]">Add Additional Photos</label>
+      <input type="file" id="edit-photos" accept="image/*" multiple class="text-xs text-[#697586]"/>
+    </div>
+    <div id="edit-error" class="text-xs text-red-400 hidden"></div>
+    <div class="flex gap-2 mt-2">
+      <button class="btn btn-primary flex-1 text-xs" onclick="submitEdit()" id="edit-save-btn">Save Changes</button>
+      <button class="btn btn-secondary text-xs" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<!-- TELEGRAM CONNECTED VERIFICATION POP-UP MODAL                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<div id="tg-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+  <div class="panel p-5 w-full max-w-md flex flex-col gap-3.5 bg-[#0D1014] border border-emerald-500/40 shadow-2xl rounded-xl animate-in fade-in zoom-in duration-200">
+    <div class="flex items-center justify-between border-b border-white/5 pb-2.5">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+        <span class="text-xs font-semibold text-white tracking-wide uppercase font-mono">TELEGRAM BOT CONNECTED</span>
+      </div>
+      <button onclick="closeTgModal()" class="text-[#697586] hover:text-[#DDE3EA] text-base p-1" title="Close">✕</button>
+    </div>
+
+    <!-- Green Success Highlight Box -->
+    <div class="p-3 bg-emerald-500/[0.08] border border-emerald-500/30 rounded-lg flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl flex-shrink-0 font-bold">
+        ✓
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs font-semibold text-white">Live Alert Link Verified & Armed</div>
+        <div class="text-[11px] text-emerald-300/85 mt-0.5" id="tg-modal-subtitle">Test alert successfully delivered to your Telegram chat!</div>
+      </div>
+    </div>
+
+    <!-- Connection Metadata Details Grid -->
+    <div class="panel-sub p-3 flex flex-col gap-2 font-mono text-[11px]">
+      <div class="flex justify-between items-center text-xs py-1 border-b border-white/5">
+        <span class="text-[#697586]">Dispatched Bot:</span>
+        <span class="text-white font-semibold" id="tg-modal-bot">@Sithdev123_bot</span>
+      </div>
+      <div class="flex justify-between items-center text-xs py-1 border-b border-white/5">
+        <span class="text-[#697586]">Recipient Chat:</span>
+        <span class="text-[#4285F4]" id="tg-modal-chat">Devi Sri Dasari</span>
+      </div>
+      <div class="flex justify-between items-center text-xs py-1 border-b border-white/5">
+        <span class="text-[#697586]">Target Chat ID:</span>
+        <span class="text-[#DDE3EA]" id="tg-modal-chatid">8631030559</span>
+      </div>
+      <div class="flex justify-between items-center text-xs py-1">
+        <span class="text-[#697586]">Threat Push Trigger:</span>
+        <span class="text-emerald-400 font-semibold">HIGH Confirmed Matches</span>
+      </div>
+    </div>
+
+    <!-- Informational Note -->
+    <div class="text-[11px] text-[#8C9BAE] bg-white/[0.02] border border-white/5 p-2.5 rounded-lg flex items-start gap-2">
+      <span class="text-sm">📷</span>
+      <span class="leading-relaxed">Whenever an enrolled target suspect is recognized on camera, an instant push notification with a cropped forensic evidence photo and timestamp will arrive in this Telegram chat.</span>
+    </div>
+
+    <!-- Modal Action Buttons -->
+    <div class="flex gap-2 mt-1">
+      <button class="btn btn-secondary flex-1 text-xs py-2" onclick="triggerTelegramTest(true)" id="tg-test-again-btn">Send Another Ping 🚀</button>
+      <button class="btn btn-primary flex-1 text-xs py-2" onclick="closeTgModal()">Acknowledged</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT ENGINE (CLEAN & MINIMAL)                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<script>
+let ws = null;
+let totalAlerts = 0;
+let alertCount = 0;
+let lastFrameTime = Date.now();
+let fpsSmooth = 0;
+let bannerTimeout = null;
+let cachedPersons = [];
+let selectedPhotos = [];
+
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function updateClock() {
+  const d = new Date();
+  document.getElementById('clock').textContent = d.toLocaleTimeString('en-GB');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── Tab Management ────────────────────────────────────────────────────────────
+function switchTab(name) {
+  ['alerts', 'watchlist', 'analytics'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('hidden', t !== name);
+    document.getElementById('tab-btn-' + t).classList.toggle('active', t === name);
+  });
+  if (name === 'watchlist') loadWatchlist();
+  if (name === 'analytics') loadStats();
+}
+
+// ── Streaming & Control ───────────────────────────────────────────────────────
+function onSourceChange() {
+  const v = document.getElementById('source-select').value;
+  document.getElementById('ip-url').style.display = (v === 'ip') ? '' : 'none';
+}
+
+// ── Viewport Layout & Fit Controls ────────────────────────────────────────────
+let currentFitMode = 'cover'; // 'cover' fills entire space, 'contain' letterboxes
+function toggleFitMode() {
+  const feed = document.getElementById('feed');
+  const fitText = document.getElementById('fit-text');
+  const fitIcon = document.getElementById('fit-icon');
+  if (currentFitMode === 'cover') {
+    currentFitMode = 'contain';
+    feed.classList.remove('object-cover');
+    feed.classList.add('object-contain');
+    fitText.textContent = 'FIT';
+    fitIcon.textContent = '📐';
+  } else {
+    currentFitMode = 'cover';
+    feed.classList.remove('object-contain');
+    feed.classList.add('object-cover');
+    fitText.textContent = 'FILL';
+    fitIcon.textContent = '🔲';
+  }
+}
+
+let isTheaterMode = false;
+function toggleTheaterMode() {
+  const sidebar = document.getElementById('intel-sidebar');
+  const theaterText = document.getElementById('theater-text');
+  isTheaterMode = !isTheaterMode;
+  if (isTheaterMode) {
+    sidebar.classList.add('hidden');
+    theaterText.textContent = 'SPLIT';
+  } else {
+    sidebar.classList.remove('hidden');
+    theaterText.textContent = 'WIDE';
+  }
+}
+
+function toggleFullscreen() {
+  const container = document.getElementById('viewport-container');
+  if (!document.fullscreenElement) {
+    container.requestFullscreen().catch(err => console.error(err));
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+function getSource() {
+  const v = document.getElementById('source-select').value;
+  if (v === 'ip') {
+    return document.getElementById('ip-url').value.trim() || 'file:test_border_cctv.mp4';
+  }
+  return v;
+}
+
+function getParams() {
+  return {
+    threshold: parseFloat(document.getElementById('threshold').value),
+    skip: parseInt(document.getElementById('skip').value),
+    conf: parseFloat(document.getElementById('yoloconf').value),
+    night: document.getElementById('night-toggle').checked ? 1 : 0
+  };
+}
+
+function onParamChange() {
+  document.getElementById('threshold-val').textContent = parseFloat(document.getElementById('threshold').value).toFixed(2);
+  document.getElementById('skip-val').textContent = document.getElementById('skip').value + ' f';
+  document.getElementById('yoloconf-val').textContent = parseFloat(document.getElementById('yoloconf').value).toFixed(2);
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    stopFeed();
+    setTimeout(startFeed, 350);
+  }
+}
+
+function startFeed() {
+  stopFeed();
+  const src = getSource();
+  const p = getParams();
+  const wsUrl = `ws://${location.host}/ws/feed?source=${encodeURIComponent(src)}&threshold=${p.threshold}&skip=${p.skip}&night_mode=${p.night}&conf=${p.conf}`;
+
+  document.getElementById('start-btn').classList.add('hidden');
+  document.getElementById('stop-btn').classList.remove('hidden');
+  document.getElementById('stream-dot').className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse';
+  document.getElementById('stream-status-text').textContent = 'CONNECTING...';
+
+  ws = new WebSocket(wsUrl);
+  ws.binaryType = 'arraybuffer';
+
+  ws.onopen = () => {
+    document.getElementById('stream-dot').className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+    document.getElementById('stream-status-text').textContent = 'LIVE FEED';
+    document.getElementById('offline-msg').style.display = 'none';
+    document.getElementById('feed').style.display = 'block';
+  };
+
+  ws.onmessage = (event) => {
+    if (event.data instanceof ArrayBuffer) {
+      const blob = new Blob([event.data], { type: 'image/jpeg' });
+      const url = URL.createObjectURL(blob);
+      const feedEl = document.getElementById('feed');
+      const oldUrl = feedEl.src;
+      feedEl.src = url;
+      if (oldUrl.startsWith('blob:')) URL.revokeObjectURL(oldUrl);
+
+      // Framerate measurement
+      const now = Date.now();
+      const dt = (now - lastFrameTime) / 1000;
+      lastFrameTime = now;
+      if (dt > 0) {
+        fpsSmooth = 0.88 * fpsSmooth + 0.12 * (1 / dt);
+        document.getElementById('stat-fps').textContent = fpsSmooth.toFixed(1);
+        document.getElementById('stream-status-text').textContent = `LIVE &bull; ${fpsSmooth.toFixed(0)} FPS`;
+      }
+    } else {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'alert') {
+          handleAlert(msg);
+        } else if (msg.type === 'telemetry') {
+          if (msg.stream_fps) document.getElementById('stat-fps').textContent = msg.stream_fps;
+          if (msg.ai_fps) document.getElementById('stat-aifps').textContent = msg.ai_fps;
+          if (msg.persons !== undefined) document.getElementById('stat-persons').textContent = msg.persons;
+          if (msg.vehicles !== undefined) document.getElementById('stat-vehicles').textContent = msg.vehicles;
+        }
+      } catch(e) {}
+    }
+  };
+
+  ws.onclose = () => {
+    const isRunning = !document.getElementById('stop-btn').classList.contains('hidden');
+    if (isRunning) {
+      document.getElementById('stream-dot').className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse';
+      document.getElementById('stream-status-text').textContent = 'RECONNECTING...';
+      // Auto-retry in 2.0 seconds if Wi-Fi dropped mid-stream
+      setTimeout(() => {
+        if (!document.getElementById('stop-btn').classList.contains('hidden')) {
+          startFeed();
+        }
+      }, 2000);
+    } else {
+      document.getElementById('stream-dot').className = 'w-1.5 h-1.5 rounded-full bg-[#697586]';
+      document.getElementById('stream-status-text').textContent = 'OFFLINE';
+    }
+  };
+}
+
+function stopFeed() {
+  if (ws) { ws.close(); ws = null; }
+  document.getElementById('start-btn').classList.remove('hidden');
+  document.getElementById('stop-btn').classList.add('hidden');
+  document.getElementById('stream-dot').className = 'w-1.5 h-1.5 rounded-full bg-[#697586]';
+  document.getElementById('stream-status-text').textContent = 'OFFLINE';
+  document.getElementById('feed').style.display = 'none';
+  document.getElementById('offline-msg').style.display = 'flex';
+}
+
+// ── Alert Handling ────────────────────────────────────────────────────────────
+function handleAlert(msg) {
+  const alert = msg.alert;
+  const cat = msg.category || '';
+  const tier = alert.match_tier || 'HIGH';
+  const isFriend = cat.toLowerCase().includes('friend') || cat.toLowerCase().includes('vip') || cat.toLowerCase().includes('auth');
+  const isPossible = tier === 'POSSIBLE';
+
+  totalAlerts++;
+  alertCount++;
+  const pill = document.getElementById('alert-count-pill');
+  pill.textContent = alertCount;
+  pill.classList.remove('hidden');
+  document.getElementById('stat-alerts').textContent = totalAlerts;
+
+  // Banner for verified matches
+  if (tier === 'HIGH') {
+    clearTimeout(bannerTimeout);
+    const banner = document.getElementById('threat-banner');
+    banner.style.display = 'flex';
+    banner.style.backgroundColor = isFriend ? '#F59E0B' : '#EF4444';
+    document.getElementById('threat-banner-text').textContent = isFriend
+      ? `VERIFIED VIP: ${alert.person.toUpperCase()} (${(alert.confidence_raw * 100).toFixed(0)}%)`
+      : `THREAT IDENTIFIED: ${alert.person.toUpperCase()} (${(alert.confidence_raw * 100).toFixed(0)}%)`;
+    bannerTimeout = setTimeout(() => { banner.style.display = 'none'; }, 3200);
+  }
+
+  const list = document.getElementById('alert-list');
+  const empty = list.querySelector('.font-mono');
+  if (empty) empty.remove();
+
+  const card = document.createElement('div');
+  card.className = 'panel-sub p-2.5 flex gap-2.5 items-center';
+  
+  const statusBorder = isPossible ? 'border-l-2 border-l-[#F59E0B]' : (isFriend ? 'border-l-2 border-l-[#F59E0B]' : 'border-l-2 border-l-[#EF4444]');
+  card.className += ' ' + statusBorder;
+
+  const snapPath = alert.snapshot_path || '';
+  const snapHtml = snapPath
+    ? `<img src="/${snapPath}" class="w-10 h-10 rounded object-cover border border-white/10 flex-shrink-0" alt="snapshot"/>`
+    : `<div class="w-10 h-10 rounded bg-white/5 border border-white/10 flex items-center justify-center text-[10px] text-[#697586] flex-shrink-0 mono">CROP</div>`;
+
+  const confPct = (alert.confidence_raw * 100).toFixed(1);
+  const pillColor = isPossible ? 'pill-amber' : (isFriend ? 'pill-amber' : 'pill-red');
+  const pillLabel = isPossible ? 'POSSIBLE' : (isFriend ? 'VIP' : 'THREAT');
+
+  card.innerHTML = `
+    ${snapHtml}
+    <div class="flex-1 min-w-0">
+      <div class="flex justify-between items-center">
+        <span class="text-xs font-medium text-white truncate">${alert.person}</span>
+        <span class="pill ${pillColor} text-[10px] py-0 px-1.5">${pillLabel}</span>
+      </div>
+      <div class="text-[11px] text-[#697586] mono mt-0.5">${alert.timestamp} &bull; ${cat || 'Target'} &bull; ${confPct}%</div>
+    </div>
+  `;
+
+  list.insertBefore(card, list.firstChild);
+}
+
+async function clearAlerts() {
+  await fetch('/api/alerts/clear', { method: 'POST' });
+  document.getElementById('alert-list').innerHTML = `
+    <div class="flex flex-col items-center justify-center h-48 text-[#697586] text-xs font-mono">
+      <span>NO THREAT EVENTS DETECTED</span>
+      <span class="text-[11px] text-[#697586]/60 mt-1">Monitoring active feed...</span>
+    </div>
+  `;
+  alertCount = 0;
+  document.getElementById('alert-count-pill').classList.add('hidden');
+}
+
+// ── Zone Label ────────────────────────────────────────────────────────────────
+async function saveZone() {
+  const zone = document.getElementById('zone-input').value.trim();
+  if (!zone) return;
+  const fd = new FormData();
+  fd.append('zone', zone);
+  await fetch('/api/zone', { method: 'POST', body: fd });
+}
+
+async function loadZone() {
+  const res = await fetch('/api/zone').catch(() => null);
+  if (!res) return;
+  const data = await res.json();
+  if (data && data.zone) {
+    document.getElementById('zone-input').value = data.zone;
+  }
+}
+
+// ── Watchlist Management ──────────────────────────────────────────────────────
+async function loadWatchlist() {
+  const res = await fetch('/api/watchlist');
+  const data = await res.json();
+  cachedPersons = data.persons || [];
+  const grid = document.getElementById('watchlist-grid');
+  grid.innerHTML = '';
+
+  if (!cachedPersons.length) {
+    grid.innerHTML = '<div class="col-span-2 text-center text-xs text-[#697586] py-8 font-mono">NO IDENTITIES ENROLLED</div>';
+    return;
+  }
+
+  document.getElementById('stat-enrolled').textContent = `${cachedPersons.length} Identities`;
+
+  cachedPersons.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'panel-sub p-2.5 flex flex-col items-center gap-1.5 relative group';
+    
+    const isFriend = p.category && (p.category.includes('Friend') || p.category.includes('VIP') || p.category.includes('Auth'));
+    const catBadgeClass = isFriend ? 'pill-amber' : 'pill-red';
+
+    card.innerHTML = `
+      <div class="absolute top-1.5 right-1.5 flex gap-1 opacity-80 group-hover:opacity-100">
+        <button onclick="openEditModal('${p.id}')" class="text-[11px] text-[#697586] hover:text-[#DDE3EA] p-0.5" title="Edit">✎</button>
+        <button onclick="deletePerson('${p.id}')" class="text-[11px] text-red-400 hover:text-red-300 p-0.5" title="Delete">✕</button>
+      </div>
+      <img src="${p.thumb_url}?v=${Date.now()}" class="w-12 h-12 rounded-full object-cover border border-white/10 bg-white/5" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'48\\' height=\\'48\\'><rect fill=\\'%2315181D\\' width=\\'48\\' height=\\'48\\'/><text x=\\'50%\\' y=\\'55%\\' font-size=\\'20\\' text-anchor=\\'middle\\' fill=\\'%23697586\\'>?</text></svg>'"/>
+      <div class="text-xs font-medium text-white text-center truncate max-w-[130px]">${p.name}</div>
+      <span class="pill ${catBadgeClass} text-[9px] py-0 px-1.5">${p.category}</span>
+      <span class="text-[10px] text-[#697586] mono">${p.photo_count} photo${p.photo_count !== 1 ? 's' : ''}</span>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function toggleEnroll() {
+  const form = document.getElementById('enroll-form');
+  form.classList.toggle('hidden');
+}
+
+function onDragOver(e) { e.preventDefault(); }
+function onDrop(e) {
+  e.preventDefault();
+  processPhotos(Array.from(e.dataTransfer.files));
+}
+function onPhotoSelect(e) {
+  processPhotos(Array.from(e.target.files));
+  e.target.value = ''; // Reset so user can click repeatedly to add more angles
+}
+
+function processPhotos(files) {
+  const newImages = files.filter(f => f.type.startsWith('image/'));
+  selectedPhotos = [...selectedPhotos, ...newImages];
+  renderPreviews();
+}
+
+function removePhoto(idx) {
+  selectedPhotos.splice(idx, 1);
+  renderPreviews();
+}
+
+function renderPreviews() {
+  const container = document.getElementById('photo-previews');
+  container.innerHTML = '';
+
+  const badge = document.getElementById('photo-count-badge');
+  if (selectedPhotos.length > 0) {
+    badge.textContent = `${selectedPhotos.length} photo${selectedPhotos.length > 1 ? 's' : ''} queued (Multi-Angle)`;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+    container.innerHTML = '<span class="text-[10px] text-[#697586] italic px-1">No photos selected yet</span>';
+    return;
+  }
+
+  selectedPhotos.forEach((f, idx) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const card = document.createElement('div');
+      card.className = 'relative group w-12 h-12 rounded overflow-hidden border border-white/20 bg-black/40 flex-shrink-0';
+
+      const img = document.createElement('img');
+      img.className = 'w-full h-full object-cover';
+      img.src = e.target.result;
+
+      const tag = document.createElement('div');
+      tag.className = 'absolute bottom-0 left-0 right-0 bg-black/80 text-[8px] text-center text-[#DDE3EA] py-0.5 font-mono';
+      tag.textContent = `A${idx + 1}`;
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'absolute top-0 right-0 w-4 h-4 bg-red-600/90 hover:bg-red-500 text-white text-[9px] flex items-center justify-center rounded-bl';
+      delBtn.innerHTML = '✕';
+      delBtn.title = 'Remove this angle';
+      delBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        removePhoto(idx);
+      };
+
+      card.appendChild(img);
+      card.appendChild(tag);
+      card.appendChild(delBtn);
+      container.appendChild(card);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+async function submitEnroll() {
+  const name = document.getElementById('enroll-name').value.trim();
+  const category = document.getElementById('enroll-cat').value;
+  const notes = document.getElementById('enroll-notes').value.trim();
+  const errDiv = document.getElementById('enroll-error');
+  errDiv.classList.add('hidden');
+
+  if (!name) {
+    errDiv.textContent = 'Name is required';
+    errDiv.classList.remove('hidden');
+    return;
+  }
+  if (!selectedPhotos.length) {
+    errDiv.textContent = 'Please select at least one photo (multiple angles recommended)';
+    errDiv.classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('enroll-submit-btn');
+  btn.textContent = `Processing ${selectedPhotos.length} Angle(s)...`;
+  btn.disabled = true;
+
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('category', category);
+  fd.append('notes', notes);
+  selectedPhotos.forEach(f => fd.append('photos', f));
+
+  try {
+    const res = await fetch('/api/enroll', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.success) {
+      selectedPhotos = [];
+      renderPreviews();
+      document.getElementById('enroll-name').value = '';
+      document.getElementById('enroll-notes').value = '';
+      document.getElementById('enroll-form').classList.add('hidden');
+      loadWatchlist();
+    } else {
+      errDiv.textContent = data.message;
+      errDiv.classList.remove('hidden');
+    }
+  } catch(e) {
+    errDiv.textContent = 'Network error while enrolling';
+    errDiv.classList.remove('hidden');
+  }
+  btn.textContent = 'Save Identity (Multi-Angle)';
+  btn.disabled = false;
+}
+
+function openEditModal(id) {
+  const p = cachedPersons.find(item => item.id === id);
+  if (!p) return;
+  document.getElementById('edit-person-id').value = p.id;
+  document.getElementById('edit-name').value = p.name;
+  document.getElementById('edit-cat').value = p.category;
+  document.getElementById('edit-notes').value = p.notes || '';
+  document.getElementById('edit-photos').value = '';
+  document.getElementById('edit-error').classList.add('hidden');
+  document.getElementById('edit-modal').classList.remove('hidden');
+  document.getElementById('edit-modal').classList.add('flex');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.add('hidden');
+  document.getElementById('edit-modal').classList.remove('flex');
+}
+
+async function submitEdit() {
+  const id = document.getElementById('edit-person-id').value;
+  const name = document.getElementById('edit-name').value.trim();
+  const category = document.getElementById('edit-cat').value;
+  const notes = document.getElementById('edit-notes').value.trim();
+  const photoInput = document.getElementById('edit-photos');
+  const errDiv = document.getElementById('edit-error');
+  errDiv.classList.add('hidden');
+
+  if (!name) {
+    errDiv.textContent = 'Name is required';
+    errDiv.classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('edit-save-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('category', category);
+  fd.append('notes', notes);
+  if (photoInput.files && photoInput.files.length > 0) {
+    for (let f of photoInput.files) {
+      fd.append('photos', f);
+    }
+  }
+
+  try {
+    const res = await fetch(`/api/watchlist/${id}`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.success) {
+      closeEditModal();
+      loadWatchlist();
+    } else {
+      errDiv.textContent = data.message;
+      errDiv.classList.remove('hidden');
+    }
+  } catch(e) {
+    errDiv.textContent = 'Error updating';
+    errDiv.classList.remove('hidden');
+  }
+  btn.textContent = 'Save Changes';
+  btn.disabled = false;
+}
+
+async function deletePerson(id) {
+  if (!confirm('Remove identity from database?')) return;
+  await fetch(`/api/watchlist/${id}`, { method: 'DELETE' });
+  loadWatchlist();
+}
+
+// ── Telemetry & Analytics ─────────────────────────────────────────────────────
+async function loadStats() {
+  const res = await fetch('/api/status').catch(() => null);
+  if (!res) return;
+  const data = await res.json();
+  document.getElementById('stat-enrolled').textContent = `${data.enrolled_count || 0} Identities`;
+  document.getElementById('stat-alerts').textContent = data.alert_count || 0;
+}
+
+// ── Startup ───────────────────────────────────────────────────────────────────
+function init() {
+  onSourceChange();
+  loadZone();
+  loadWatchlist();
+}
+
+// ── Telegram Bot Dispatch & Verification Modal ───────────────────────────────
+function openTgModal(details, msg) {
+  if (details) {
+    if (details.bot_username) {
+      document.getElementById('tg-modal-bot').textContent = '@' + details.bot_username + (details.bot_name ? ` (${details.bot_name})` : '');
+    }
+    if (details.chat_name) {
+      document.getElementById('tg-modal-chat').textContent = details.chat_name;
+    }
+    if (details.chat_id) {
+      document.getElementById('tg-modal-chatid').textContent = details.chat_id;
+    }
+  }
+  if (msg) {
+    document.getElementById('tg-modal-subtitle').textContent = msg;
+  }
+  const modal = document.getElementById('tg-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeTgModal() {
+  const modal = document.getElementById('tg-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+async function saveTelegramConfig() {
+  const token = document.getElementById('tg-token').value.trim();
+  const chatId = document.getElementById('tg-chatid').value.trim();
+  const msgEl = document.getElementById('tg-sidebar-msg');
+  msgEl.classList.add('hidden');
+
+  if (!token || !chatId) {
+    alert('Please enter both Bot Token and Chat ID.');
+    return;
+  }
+
+  const btn = document.getElementById('tg-link-btn');
+  const oldText = btn.textContent;
+  btn.textContent = 'Linking...';
+  btn.disabled = true;
+
+  const fd = new FormData();
+  fd.append('bot_token', token);
+  fd.append('token', token);
+  fd.append('chat_id', chatId);
+
+  try {
+    const res = await fetch('/api/telegram/config', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('tg-status-pill').textContent = 'ACTIVE';
+      document.getElementById('tg-status-pill').className = 'pill pill-green text-[10px]';
+      msgEl.textContent = '✓ Linked & Tested';
+      msgEl.className = 'text-[10px] text-emerald-400 font-mono mt-0.5';
+      msgEl.classList.remove('hidden');
+      // Trigger the requested Pop-up!
+      openTgModal(data.details, data.message);
+    } else {
+      msgEl.textContent = 'Failed: ' + (data.message || 'Error');
+      msgEl.className = 'text-[10px] text-red-400 font-mono mt-0.5';
+      msgEl.classList.remove('hidden');
+      alert('Telegram Link Failed:\n' + data.message);
+    }
+  } catch(e) {
+    alert('Network error while linking Telegram: ' + e);
+  }
+  btn.textContent = oldText;
+  btn.disabled = false;
+}
+
+async function triggerTelegramTest(fromModal = false) {
+  const token = document.getElementById('tg-token').value.trim();
+  const chatId = document.getElementById('tg-chatid').value.trim();
+  const btn = fromModal ? document.getElementById('tg-test-again-btn') : document.getElementById('tg-test-btn');
+  const oldText = btn.textContent;
+  btn.textContent = 'Pinging...';
+  btn.disabled = true;
+
+  const fd = new FormData();
+  if (token) {
+    fd.append('bot_token', token);
+    fd.append('token', token);
+  }
+  if (chatId) {
+    fd.append('chat_id', chatId);
+  }
+
+  try {
+    const res = await fetch('/api/telegram/test', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('tg-status-pill').textContent = 'ACTIVE';
+      document.getElementById('tg-status-pill').className = 'pill pill-green text-[10px]';
+      openTgModal(data.details, data.message);
+    } else {
+      alert('Telegram Test Ping Failed:\n' + data.message);
+    }
+  } catch(e) {
+    alert('Network error during test ping: ' + e);
+  }
+  btn.textContent = oldText;
+  btn.disabled = false;
+}
+
+async function loadTelegramConfig() {
+  const res = await fetch('/api/telegram/config').catch(() => null);
+  if (!res) return;
+  const data = await res.json();
+  if (data) {
+    if (data.bot_token) document.getElementById('tg-token').value = data.bot_token;
+    if (data.chat_id) document.getElementById('tg-chatid').value = data.chat_id;
+    if (data.configured) {
+      document.getElementById('tg-status-pill').textContent = 'ACTIVE';
+      document.getElementById('tg-status-pill').className = 'pill pill-green text-[10px]';
+    } else {
+      document.getElementById('tg-status-pill').textContent = 'UNCONFIGURED';
+      document.getElementById('tg-status-pill').className = 'pill pill-muted text-[10px]';
+    }
+  }
+}
+
+window.onload = () => { init(); loadTelegramConfig(); };
+</script>
+</body>
+</html>

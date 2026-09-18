@@ -1,0 +1,41 @@
+# Python Virtual Environment
+venv/
+env/
+.env
+
+# InsightFace Model Cache
+.insightface/
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Sensitive Telegram Credentials
+telegram_config.json
+
+# Local Surveillance Databases & Threat Captures
+*.db
+*.sqlite
+*.sqlite3
+watchlist_db.pkl
+watchlist_meta.json
+captured_threats/
+static/thumbnails/*
+!static/thumbnails/.gitkeep
+
+# Large Pre-Trained Weights (Downloaded automatically by Ultralytics / InsightFace)
+*.pt
+*.onnx
+
+# Local Test Videos & Extraneous Downloads
+test_*.mp4
+talent*.html
+index (*).html
+
+# IDE & OS Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
